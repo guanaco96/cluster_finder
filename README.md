@@ -13,3 +13,7 @@ In this repository you can find:
 >A small testing input: "facebook_combined", if you want to try this software on bigger datasets, please download it from <http://snap.stanford.edu/>.
 
 >An explanation .txt file "Leggimi" (in italian).
+
+<p align="center"> ACHTUNG! </p>
+
+In order to run my program you need to create two output empty .txt files: "modularity" and "cluster_belongings" and put them in the same directory of executable file & input files.
