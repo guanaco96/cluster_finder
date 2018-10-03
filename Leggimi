@@ -1,0 +1,90 @@
+Lorenzo Beretta,	matricola 536242
+
+In quanto segue tratterò un grafo G=(V,E), |V|=n, |E|=m.
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+ATTENZIONE: affinchè i risultati prodotti dall'algoritmo siano leggibili come tabelle è necessario porre nel proprio lettore 1 tab = 8 spazi, e
+possibilmente, per visualizzare le clusterizzazioni con più clusters, fare in modo che sia dotato di barra di scroll in larghezza.
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+L'algoritmo da me progettato utilizza un approccio greedy per trovare i cluster nella rete sociale in input: non fisserò quindi a priori una
+nozione di classe sociale come quelle proposte nel link fornito con il progetto, piuttosto la mia euristica fornirà un certo numero di
+clusterizzazioni, dipendenti da alcuni parametri che si possono modificare dal sorgente (si trovano in testa) la cui bontà si potrà valutare
+leggendo la tabella delle modularità fornita come output. 
+Il codice è stato scritto in C++ e si trova nel file "cliques.cpp".
+
+------------
+Input/Output
+------------
+
+Il file di input deve essere costituito da m righe, una per ogni arco, contenenti (label primo nodo)(spazio)(label secondo nodo), il suo nome va
+inserito da terminale una volta avviato il programma, nel folder fornito con questo documento sono presenti alcuni grafi trovati sul link da lei
+fornito da utilizzare per provare il software.
+
+I file di output sono 2: "modularity" contiene le tabelle di modularità dei clusters, ovvero il discostamento dall'atteso (considerando la
+distribuzione uniforme condizionata a preservare il grado di ogni nodo) della densità di archi tra due clusters, precedute dal numero
+dell'iterazione alla quale sono state estratte.
+Una clusterizzazione sarà quindi tanto migliore quanto più le modularità degli elementi sulla diagonale sono positive e quanto più quelle degli
+elementi che non si trovano sulla diagonale sono negative.
+L'altro file di output è "clusters_belongings" e contiene, per tutte le iterazioni presentate in "modularity" il seguente pattern: n righe
+contenenti (label nodo)(spazio)(indice cluster di appartenenza) precedute da una riga contenete "Iterazione (numero dell'iterazione)".
+
+--------------------------
+Descrizione dell'algoritmo
+--------------------------
+
+L'algoritmo si può dividere in 2 fasi: un preprocessing di complessità O(n) in cui il grafo viene partizionato in cliques, ed una seconda in cui
+queste cliques vengono assemblate per formare clusters di dimensioni maggiori di complessità m*log(m)*log(n).
+
+L'algoritmo scelto per la prima fase è il più banale:
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+PRIMA PARTE
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Sia G il nostro grafo, S=vuoto
+
+(0)G'=G
+(1)Scelgo un pivot p in G, S=S U {p}
+(2)G'=sottografo di G degli amici di p
+(3)Se G'==vuoto salta al punto (5) altrimenti sia x pivot in G', S= S U {x}
+(4)G'=sottografo di G' degli amici di x, salta al punto (3)
+(5)S è una clique, la salvo, G=G\S, S=vuoto, se G!=vuoto salto a (0)
+
+NOTA: nel mio programma la scelta del pivot è banale.
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+In un primo momento avevo implementato per questa parte un'euristica per il minimal clique-vertex-partitioning che avevo trovato in letteratura
+("The clique-partitioning problem" J.Bhasker, Tariq Samad) con l'idea che creare dei "centri attrattori", per la seconda parte, di dimensioni
+maggiori potesse essere favorevole, essa però aveva complessità O(n^2) in quanto prevedeva di scegliere il pivot in modo che fosse il nodo di minor
+grado nel grafo (informalmente: lasciando i nodi di grado alto per le cliques più numerose).
+Durante le sperimentazioni mi sono però reso conto che quella era la parte computazionalmente più gravosa (vedremo infatti che la seconda parte
+dell'algoritmo ha complessità m*log(m)*log(n)) e che sostituirla con l'algoritmo banale non peggiorava sensibilmente la qualità dei clusters finali.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+SECONDA PARTE
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Sia G un grafo pesato avente per nodi le cliques ottenute in precedenza e dove weight(i,j)=#{amicizie tra elementi di i ed elementi di j}/(#i*#j)
+
+(0)Eseguo l'algoritmo di Kruskal arrestandolo dopo aver inserito una frazione prefissata del numero di nodi (si vedano i parametri del source code)
+di archi
+(1)Creo un nuovo grafo in cui i nodi sono le componenti connesse ottenute con Kruskal e i pesi sono calcolati come in precedenza
+(2)Ordino per cardinalità decrescente i miei clusters (ovvero i nodi dell'ultimo grafo creato)
+(3)n=0, S=vuoto, somma=0
+(4)Finchè somma< frazione fissata del numero di nodi, S= S U {prossimo cluster seguendo l'ordine}, n++, somma+=#{prossimo cluster}
+(5)Se n è minore di una prima soglia stampo gli elementi di S, se n è minore di una seconda soglia interrompo l'algoritmo, altirmenti salto al
+punto (0).
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Il codice allegato è molto ricco di commenti, oltre a spiegare l'implementazione di quanto descritto sommarimente sopra, ho riportato a finaco dei
+cicli e delle funzioni utilizzate la loro complessità asintotica, quindi si rimanda alla sua lettura per ogni giustificazione precisa sui risultati
+di complessità ottenuti.
+
+Per comprendere da dove venga fuori la complessità m*log(m)*log(n) è però sufficiente osservare lo pseudo codice della seconda parte: l'algoritmo
+di Kruskal la cui complessità, data dall'ordinamento, è m*log(m), viene iterato al più fintanto che i nodi totali nel grafo non scendono sotto una
+certa soglia, questi però ad ogni iterazione vengono ridotti di una frazione costante, ovvero esponenzialmente, da cui la complessità ottenuta.
+
+
+
+
+
+
